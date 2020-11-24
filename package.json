@@ -1,6 +1,6 @@
 {
-  "name": "json-type",
-  "version": "1.0.0",
+  "name": "@dqn/json-type",
+  "version": "0.1.1",
   "main": "dist/index.js",
   "license": "MIT",
   "scripts": {
