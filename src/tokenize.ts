@@ -1,4 +1,4 @@
-import { Add, Mul } from "./calc";
+import type { Add, Mul } from "./calc";
 
 type ReadStringLiteralCore<
   S,
@@ -39,14 +39,14 @@ type TokenizeString<S, Tokens extends any[]> = ReadStringLiteral<S> extends [
   infer Literal,
   infer Rest,
 ]
-  ? TokenizeCore<Rest, [...Tokens, Literal]>
+  ? TokenizeCore<Rest, [...Tokens, { type: "string"; value: Literal }]>
   : never;
 
 type TokenizeNumber<S, Tokens extends any[]> = ReadNumberLiteral<S> extends [
   infer Literal,
   infer Rest,
 ]
-  ? TokenizeCore<Rest, [...Tokens, Literal]>
+  ? TokenizeCore<Rest, [...Tokens, { type: "number"; value: Literal }]>
   : never;
 
 type TokenizeCore<S, Tokens extends any[] = []> = S extends ` ${infer Rest}`
@@ -54,19 +54,23 @@ type TokenizeCore<S, Tokens extends any[] = []> = S extends ` ${infer Rest}`
   : S extends `\n${infer Rest}`
   ? TokenizeCore<Rest, Tokens>
   : S extends `{${infer Rest}`
-  ? TokenizeCore<Rest, [...Tokens, "{"]>
+  ? TokenizeCore<Rest, [...Tokens, { type: "{" }]>
   : S extends `}${infer Rest}`
-  ? TokenizeCore<Rest, [...Tokens, "}"]>
+  ? TokenizeCore<Rest, [...Tokens, { type: "}" }]>
   : S extends `[${infer Rest}`
-  ? TokenizeCore<Rest, [...Tokens, "["]>
+  ? TokenizeCore<Rest, [...Tokens, { type: "[" }]>
   : S extends `]${infer Rest}`
-  ? TokenizeCore<Rest, [...Tokens, "]"]>
+  ? TokenizeCore<Rest, [...Tokens, { type: "]" }]>
   : S extends `:${infer Rest}`
-  ? TokenizeCore<Rest, [...Tokens, ":"]>
+  ? TokenizeCore<Rest, [...Tokens, { type: ":" }]>
   : S extends `,${infer Rest}`
-  ? TokenizeCore<Rest, [...Tokens, ","]>
+  ? TokenizeCore<Rest, [...Tokens, { type: "," }]>
+  : S extends `true${infer Rest}`
+  ? TokenizeCore<Rest, [...Tokens, { type: "true" }]>
+  : S extends `false${infer Rest}`
+  ? TokenizeCore<Rest, [...Tokens, { type: "false" }]>
   : S extends `null${infer Rest}`
-  ? TokenizeCore<Rest, [...Tokens, "null"]>
+  ? TokenizeCore<Rest, [...Tokens, { type: "null" }]>
   : S extends `"${infer _}`
   ? TokenizeString<S, Tokens>
   : S extends `1${infer _}`
