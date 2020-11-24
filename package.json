@@ -1,9 +1,11 @@
 {
-  "name": "json-ts",
+  "name": "json-type",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "dist/index.js",
   "license": "MIT",
   "scripts": {
+    "prepare": "yarn build",
+    "build": "rm -rf dist/ && tsc",
     "test": "tsc ./test/index.ts --noEmit"
   },
   "devDependencies": {
