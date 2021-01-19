@@ -33,11 +33,16 @@ type Result8 = JsonType<`[1, 2, null, "foo", true]`>;
 type Test8 = Expect<Equals<Result8, [1, 2, null, "foo", true]>>;
 
 type Result9 = JsonType<`{"foo": "bar", "hoge": false, "fuga": 6}`>;
-type Test9 = Expect<Equals<Result9, { foo: "bar"; hoge: false; fuga: 6 }>>;
+type Test9 = Expect<
+  Equals<Result9, { foo: "bar" } & { hoge: false } & { fuga: 6 }>
+>;
 
-type Result10 = JsonType<`{ "foo": "bar", "baz": { "hoge": { "fuga": [1, 3] } } }`>;
+type Result10 = JsonType<`{ "foo": "bar", "baz": { "hoge": { "fuga": [1, 3], "piyo": 2 } } }`>;
 type Test10 = Expect<
-  Equals<Result10, { foo: "bar"; baz: { hoge: { fuga: [1, 3] } } }>
+  Equals<
+    Result10,
+    { foo: "bar" } & { baz: { hoge: { fuga: [1, 3] } & { piyo: 2 } } }
+  >
 >;
 
 type Result11 = JsonType<`[true, false, null, {"foo": [[]]}, [[null, false], 2]]`>;

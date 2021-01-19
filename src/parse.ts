@@ -1,7 +1,5 @@
 import type { Recurse } from "./recurse";
 
-type Bind<O> = { [K in keyof O]: O[K] };
-
 type ParseObjectCore<
   Tokens extends any[],
   Obj extends object = {}
@@ -22,7 +20,7 @@ type ParseObjectCore<
             >;
           }
         : Token2 extends { type: "}" }
-        ? [Bind<Obj & { [_ in Extract<V, string>]: Result }>, Rest4]
+        ? [Obj & { [_ in Extract<V, string>]: Result }, Rest4]
         : never
       : never
     : never
