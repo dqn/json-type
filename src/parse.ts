@@ -1,24 +1,28 @@
+import type { Recurse } from "./recurse";
+
+type Bind<O> = { [K in keyof O]: O[K] };
+
 type ParseObjectCore<
   Tokens extends any[],
   Obj extends object = {}
-> = Tokens extends [infer Head, ...infer Rest]
-  ? Head extends { type: "}" }
-    ? [Obj, Rest]
-    : Tokens extends [
-        { type: "string"; value: infer V },
-        { type: ":" },
-        ...infer Rest
-      ]
-    ? ParseCore<Rest> extends [infer Result, infer RestRest]
-      ? RestRest extends [infer RestRestHead, ...infer RestRestRest]
-        ? RestRestHead extends { type: "," }
-          ? ParseObjectCore<
-              RestRestRest,
+> = Tokens extends [{ type: "}" }, ...infer Rest]
+  ? [{}, Rest]
+  : Tokens extends [
+      { type: "string"; value: infer V },
+      { type: ":" },
+      ...infer Rest2
+    ]
+  ? ParseCore<Rest2> extends [infer Result, infer Rest3]
+    ? Rest3 extends [infer Token2, ...infer Rest4]
+      ? Token2 extends { type: "," }
+        ? {
+            __rec: ParseObjectCore<
+              Rest4,
               Obj & { [_ in Extract<V, string>]: Result }
-            >
-          : RestRestHead extends { type: "}" }
-          ? [Obj & { [_ in Extract<V, string>]: Result }, RestRestRest]
-          : never
+            >;
+          }
+        : Token2 extends { type: "}" }
+        ? [Bind<Obj & { [_ in Extract<V, string>]: Result }>, Rest4]
         : never
       : never
     : never
@@ -28,22 +32,20 @@ type ParseObject<Tokens extends any[]> = Tokens extends [
   { type: "{" },
   ...infer Rest
 ]
-  ? ParseObjectCore<Rest>
+  ? Recurse<ParseObjectCore<Rest>>
   : never;
 
 type ParseArrayCore<
   Tokens extends any[],
   Arr extends any[] = []
-> = Tokens extends [infer Head, ...infer Rest]
-  ? Head extends { type: "]" }
-    ? [Arr, Rest]
-    : ParseCore<Tokens> extends [infer Result, infer Rest]
-    ? Rest extends [infer RestHead, ...infer RestRest]
-      ? RestHead extends { type: "," }
-        ? ParseArrayCore<RestRest, [...Arr, Result]>
-        : RestHead extends { type: "]" }
-        ? [[...Arr, Result], RestRest]
-        : never
+> = Tokens extends [{ type: "]" }, ...infer Rest]
+  ? [Arr, Rest]
+  : ParseCore<Tokens> extends [infer Result, infer Rest2]
+  ? Rest2 extends [infer Token2, ...infer Rest3]
+    ? Token2 extends { type: "," }
+      ? { __rec: ParseArrayCore<Rest3, [...Arr, Result]> }
+      : Token2 extends { type: "]" }
+      ? [[...Arr, Result], Rest3]
       : never
     : never
   : never;
@@ -52,24 +54,24 @@ type ParseArray<Tokens extends any[]> = Tokens extends [
   { type: "[" },
   ...infer Rest
 ]
-  ? ParseArrayCore<Rest>
+  ? Recurse<ParseArrayCore<Rest>>
   : never;
 
 type ParseCore<Tokens extends any[]> = Tokens extends [
-  infer Head,
+  infer Token,
   ...infer Rest
 ]
-  ? Head extends { type: "null" }
+  ? Token extends { type: "null" }
     ? [null, Rest]
-    : Head extends { type: "true" }
+    : Token extends { type: "true" }
     ? [true, Rest]
-    : Head extends { type: "false" }
+    : Token extends { type: "false" }
     ? [false, Rest]
-    : Head extends { type: "string" | "number"; value: infer V }
+    : Token extends { type: "string" | "number"; value: infer V }
     ? [V, Rest]
-    : Head extends { type: "{" }
+    : Token extends { type: "{" }
     ? ParseObject<Tokens>
-    : Head extends { type: "[" }
+    : Token extends { type: "[" }
     ? ParseArray<Tokens>
     : never
   : never;

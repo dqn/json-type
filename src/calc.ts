@@ -1,52 +1,49 @@
-type MakeArray<L extends number, A extends any[] = []> = A["length"] extends L
-  ? A
-  : MakeArray<L, [...A, never]>;
+import type { Recurse } from "./recurse";
 
-type DecreaseArray<A extends any[]> = A extends [infer _, ...infer Rest]
-  ? Rest
+type MakeTupleByLengthCore<
+  Length,
+  Tuple extends never[] = []
+> = Tuple["length"] extends Length
+  ? Tuple
+  : { __rec: MakeTupleByLengthCore<Length, [...Tuple, never]> };
+
+type MakeTupleByLength<Length> = Extract<
+  Recurse<MakeTupleByLengthCore<Length>>,
+  never[]
+>;
+
+type DecrementTupleLength<A extends never[]> = A extends [
+  infer _,
+  ...infer Rest
+]
+  ? Extract<Rest, never[]>
   : never;
 
-type AddArrayLength<A extends any[], B extends any[]> = [...A, ...B]["length"];
+type AddTupleLength<A extends never[], B extends never[]> = [
+  ...A,
+  ...B
+]["length"];
 
-type SubArrayLength<A extends any[], B extends any[]> = B["length"] extends 0
-  ? A["length"]
-  : SubArrayLength<DecreaseArray<A>, DecreaseArray<B>>;
-
-type MulArrayLength<
-  A extends any[],
-  B extends any[],
-  R extends any[] = []
+type MulTupleLengthCore<
+  A extends never[],
+  B extends never[],
+  Result extends never[] = []
 > = B["length"] extends 0
-  ? R["length"]
-  : MulArrayLength<A, DecreaseArray<B>, [...R, ...A]>;
-
-type DivArrayLength<
-  A extends any[],
-  B extends any[],
-  Result extends any[] = [],
-  BOrig extends any[] = B
-> = B["length"] extends 0
-  ? DivArrayLength<A, BOrig, [...Result, never], BOrig>
-  : A["length"] extends 0
   ? Result["length"]
-  : DivArrayLength<DecreaseArray<A>, DecreaseArray<B>, Result, BOrig>;
+  : {
+      __rec: MulTupleLengthCore<A, DecrementTupleLength<B>, [...Result, ...A]>;
+    };
 
-export type Add<A extends number, B extends number> = Extract<
-  AddArrayLength<MakeArray<A>, MakeArray<B>>,
-  number
+type MulTupleLength<A extends never[], B extends never[]> = Recurse<
+  MulTupleLengthCore<A, B>
 >;
 
-export type Sub<A extends number, B extends number> = Extract<
-  SubArrayLength<MakeArray<A>, MakeArray<B>>,
-  number
+export type Add<A, B> = AddTupleLength<
+  MakeTupleByLength<A>,
+  MakeTupleByLength<B>
 >;
 
-export type Mul<A extends number, B extends number> = Extract<
-  MulArrayLength<MakeArray<A>, MakeArray<B>>,
-  number
->;
-
-export type Div<A extends number, B extends number> = Extract<
-  DivArrayLength<MakeArray<A>, MakeArray<B>>,
-  number
+export type Mul<A, B> = MulTupleLength<
+  MakeTupleByLength<A>,
+  MakeTupleByLength<B>
 >;
