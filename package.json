@@ -9,7 +9,7 @@
     "test": "tsc ./test/index.ts --noEmit"
   },
   "devDependencies": {
-    "@types/node": "18.15.5",
+    "@types/node": "18.15.6",
     "prettier": "2.8.6",
     "typescript": "4.9.5"
   }
